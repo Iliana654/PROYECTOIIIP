@@ -106,7 +106,7 @@ score = 0
 
 # Función para mostrar la puntuación en la pantalla
 def show_score():
-    score_value = font.render("SCORE : " + str(score), True, (255, 255, 255))
+    score_value = font.render("SCORE : " + str(score), True, (255, 255, 0))
     screen.blit(score_value, (10, 10))
 
 # Función para dibujar el jugador en la pantalla 
@@ -117,3 +117,41 @@ def player(x, y):
 def enemy(x, y, i):
     screen.blit(enemyimg[i], (x, y))
 
+# Función para disparar la bala
+def fire_bullet(x, y):
+    global bullet_state
+    bullet_state = "fire"
+    screen.blit(bulletimg, (x + 16, y + 10))
+
+# Función para verificar si hubo colisión entre la bala y el enemigo
+def isCollision(enemyX, enemyY, bulletX, bulletY):
+    distance = math.sqrt((math.pow(enemyX - bulletX, 2)) + (math.pow(enemyY - bulletY, 2)))
+    return distance < 27
+
+# Función para mostrar el texto de game over
+def game_over_text():
+    lines = [
+        "El Jedi defensor ha caído",
+        "El lado oscuro triunfó.",
+        "La galaxia sigue esperando",
+        "una nueva esperanza"
+    ]
+    y_offset = 0  # Desplazamiento inicial en y
+
+    for line in lines:
+        over_text = over_font.render(line, True, (172, 0, 16))
+        text_rect = over_text.get_rect(center=(screen_width // 2, (screen_height // 2) + y_offset))
+        screen.blit(over_text, text_rect)
+        y_offset += 40  # Aumenta el desplazamiento en y para la siguiente línea
+
+#Inicio del juego
+def game_introduction():
+    Lines =[
+        "Es periodo de conflicto",
+    "La galaxia ha sido atacada",
+    "Palpatine ha ejecutado la orden 66,",
+    "y ha enviado a su ejercito de clones a atacar ",
+    "la capital galactica, Coruscant, En la batalla encarnaras a Weddom,",
+    "un joven jedi que esta dispuesto a defender el planeta con su vida,",
+   "tu mission es defender la capital galactica y evitar que caiga en manos de los sith, pero sobre todo, sobrevivir"
+    ]
