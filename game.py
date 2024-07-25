@@ -32,6 +32,10 @@ icon = pygame.image.load(asset_icon)
 asset_sound = resource_path('assets/audios/background_music2.mp3')
 background_sound = pygame.mixer.music.load(asset_sound)
 
+#Cargar sonido de bala
+asset_blast = resource_path('assets/audios/blast.mp3')
+blast_sound = pygame.mixer.Sound(asset_blast)
+
 # Cargar imagen del jugador
 asset_playerimg = resource_path('assets/images/Nave.png')
 playerimg = pygame.image.load(asset_playerimg)
@@ -120,6 +124,7 @@ def enemy(x, y, i):
 # Función para disparar la bala
 def fire_bullet(x, y):
     global bullet_state
+    blast_sound.play()
     bullet_state = "fire"
     screen.blit(bulletimg2, (x + 16, y + 10))
 
@@ -143,6 +148,7 @@ def game_over_text():
         text_rect = over_text.get_rect(center=(screen_width // 2, (screen_height // 2) + y_offset))
         screen.blit(over_text, text_rect)
         y_offset += 40  # Aumenta el desplazamiento en y para la siguiente línea
+
 
         # Función principal del juego
 def gameloop():
@@ -237,3 +243,6 @@ gameloop()
 #     "un joven jedi que esta dispuesto a defender el planeta con su vida,",
 #    "tu mission es defender la capital galactica y evitar que caiga en manos de los sith, pero sobre todo, sobrevivir"
 #     ]
+
+
+
