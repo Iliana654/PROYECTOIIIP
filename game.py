@@ -31,38 +31,38 @@ icon = pygame.image.load(asset_icon)
 
 # Cargar sonido de fondo
 asset_sound = resource_path('assets/audios/background_music2.mp3')
-background_sound = pygame.mixer.music.load(asset_sound)
+pygame.mixer.music.load(asset_sound)
 
-#Cargar sonido de bala
+# Cargar sonido de bala
 asset_blast = resource_path('assets/audios/blast.mp3')
 blast_sound = pygame.mixer.Sound(asset_blast)
 
 # Cargar imagen del jugador
-asset_playerimg = resource_path('assets/images/Nave.png')
-playerimg = pygame.image.load(asset_playerimg)
+asset_playerimg1 = resource_path('assets/images/Nave.png')
+playerimg1 = pygame.image.load(asset_playerimg1)
 
-#imagen del jugador 2
-asset_playerimg = resource_path('assets/images/nave2.png')
-playerimg = pygame.image.load(asset_playerimg)
+# Imagen del jugador 2 (si tienes un segundo jugador)
+asset_playerimg2 = resource_path('assets/images/nave2.png')
+playerimg2 = pygame.image.load(asset_playerimg2)
 
-# Cargar imagen de la bala 
+# Cargar imagen de la bala del jugador
 asset_bulletimg2 = resource_path('assets/images/bullet2.jpg')
-bulletimg2= pygame.image.load(asset_bulletimg2)
+bulletimg2 = pygame.image.load(asset_bulletimg2)
 
 # Cargar imagen de la bala del enemigo
 asset_bulletimg = resource_path('assets/images/bullet.jpg')
-bulletimg= pygame.image.load(asset_bulletimg)
+bulletimg = pygame.image.load(asset_bulletimg)
 
 # Cargar fuente para texto de game over
 asset_over_font = resource_path('assets/fonts/StarJediHollow-A4lL.ttf')
 over_font = pygame.font.Font(asset_over_font, 40)
 
 # Cargar fuente para texto de puntaje
-asset_font = resource_path('assets/fonts/StarJediHollow-A4lL.ttf') 
+asset_font = resource_path('assets/fonts/StarJediHollow-A4lL.ttf')
 font = pygame.font.Font(asset_font, 32)
 
 # Establecer el título de la ventana
-pygame.display.set_caption("the last one of them")
+pygame.display.set_caption("The Last One of Them")
 
 # Establecer el icono de la ventana
 pygame.display.set_icon(icon)
@@ -94,27 +94,18 @@ no_of_enemies = 6
 
 # Se inicializan las variables para guardar las posiciones de los enemigos
 for i in range(no_of_enemies):
-    # Se cargan las imágenes de los enemigos
     enemy1 = resource_path('assets/images/enemy1.png')
     enemyimg.append(pygame.image.load(enemy1))
-    enemy2 = resource_path('assets/images/enemy2.png')
-    enemyimg.append(pygame.image.load(enemy2))
-    enemy3 = resource_path('assets/images/enemy3.png')
-    enemyimg.append(pygame.image.load(enemy3))
-    # Se asigna una posición aleatoria en x y en y para el enemigo
     enemyX.append(random.randint(0, 736))
     enemyY.append(random.randint(0, 150))
-
-    # Se establece la velocidad de movimiento del enemigo en X y en Y
     enemyX_change.append(5)
     enemyY_change.append(20)
-
-    # Inicializar la posición de la bala del enemigo
     enemy_bulletX.append(enemyX[i])
     enemy_bulletY.append(enemyY[i])
-    enemy_bulletY_change.append(3)  # Reducir la velocidad de las balas enemigas
+    enemy_bulletY_change.append(3)
     enemy_bullet_state.append("ready")
-
+    enemy_last_shot_time.append(time.time())
+    enemy_shot_interval.append(random.uniform(2, 5))
 
 # Se inicializan las variables para guardar la posición de la bala
 bulletX = 0
@@ -133,7 +124,7 @@ def show_score():
 
 # Función para dibujar el jugador en la pantalla 
 def player(x, y):
-    screen.blit(playerimg, (x, y))
+    screen.blit(playerimg1, (x, y))
 
 # Función para dibujar el enemigo en la pantalla
 def enemy(x, y, i):
@@ -159,6 +150,11 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
     distance = math.sqrt((math.pow(enemyX - bulletX, 2)) + (math.pow(enemyY - bulletY, 2)))
     return distance < 27
 
+# Función para verificar si hubo colisión entre la bala enemiga y el jugador
+def isPlayerHit(playerX, playerY, bulletX, bulletY):
+    distance = math.sqrt((math.pow(playerX - bulletX, 2)) + (math.pow(playerY - bulletY, 2)))
+    return distance < 27
+
 # Función para mostrar el texto de game over
 def game_over_text():
     lines = [
@@ -175,8 +171,7 @@ def game_over_text():
         screen.blit(over_text, text_rect)
         y_offset += 40  # Aumenta el desplazamiento en y para la siguiente línea
 
-
-        # Función principal del juego
+# Función principal del juego
 def gameloop():
     global score, playerX, playerx_change, bulletX, bulletY, bullet_state
     in_game = True
@@ -246,13 +241,28 @@ def gameloop():
             if enemy_bullet_state[i] == "ready" and current_time - enemy_last_shot_time[i] > enemy_shot_interval[i]:
                 fire_enemy_bullet(enemyX[i], enemyY[i], i)
                 enemy_last_shot_time[i] = current_time
-                enemy_shot_interval[i] = random.uniform(2, 5)  # Aumentar el tiempo mínimo entre disparos
+                enemy_shot_interval[i] = random.uniform(2, 5)
+            if enemy_bullet_state[i] == "fire":
+                screen.blit(bulletimg, (enemy_bulletX[i], enemy_bulletY[i]))
+                enemy_bulletY[i] += enemy_bulletY_change[i]
 
+            if enemy_bulletY[i] > 600:
+                enemy_bulletY[i] = enemyY[i]
+                enemy_bullet_state[i] = "ready"
+
+            # Verificar colisión entre bala enemiga y jugador
+            player_hit = isPlayerHit(playerX, playerY, enemy_bulletX[i], enemy_bulletY[i])
+            if player_hit:
+                for j in range(no_of_enemies):
+                    enemyY[j] = 2000
+                game_over_text()
+                in_game = False
+                break
 
             enemy(enemyX[i], enemyY[i], i)
 
         if bulletY < 0:
-            bulletY = 454
+            bulletY = 480
             bullet_state = "ready"
         if bullet_state == "fire":
             fire_bullet(bulletX, bulletY)
@@ -265,18 +275,3 @@ def gameloop():
         clock.tick(120)
 
 gameloop()
-
-# #Inicio del juego
-# def game_introduction():
-#     Lines =[
-#         "Es periodo de conflicto",
-#     "La galaxia ha sido atacada",
-#     "Palpatine ha ejecutado la orden 66,",
-#     "y ha enviado a su ejercito de clones a atacar ",
-#     "la capital galactica, Coruscant, En la batalla encarnaras a Weddom,",
-#     "un joven jedi que esta dispuesto a defender el planeta con su vida,",
-#    "tu mission es defender la capital galactica y evitar que caiga en manos de los sith, pero sobre todo, sobrevivir"
-#     ]
-
-
-
