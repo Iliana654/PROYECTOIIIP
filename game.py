@@ -79,7 +79,13 @@ enemyX = []
 enemyY = []
 enemyX_change = []
 enemyY_change = []
-no_of_enemies = 10
+enemy_bulletX = []
+enemy_bulletY = []
+enemy_bulletY_change = []
+enemy_bullet_state = []
+enemy_last_shot_time = []
+enemy_shot_interval = []
+no_of_enemies = 6
 
 # Se inicializan las variables para guardar las posiciones de los enemigos
 for i in range(no_of_enemies):
@@ -97,6 +103,13 @@ for i in range(no_of_enemies):
     # Se establece la velocidad de movimiento del enemigo en X y en Y
     enemyX_change.append(5)
     enemyY_change.append(20)
+
+    # Inicializar la posición de la bala del enemigo
+    enemy_bulletX.append(enemyX[i])
+    enemy_bulletY.append(enemyY[i])
+    enemy_bulletY_change.append(3)  # Reducir la velocidad de las balas enemigas
+    enemy_bullet_state.append("ready")
+
 
 # Se inicializan las variables para guardar la posición de la bala
 bulletX = 0
