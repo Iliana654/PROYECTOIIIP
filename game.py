@@ -48,6 +48,10 @@ playerimg = pygame.image.load(asset_playerimg)
 asset_bulletimg2 = resource_path('assets/images/bullet2.jpg')
 bulletimg2= pygame.image.load(asset_bulletimg2)
 
+# Cargar imagen de la bala del enemigo
+asset_bulletimg = resource_path('assets/images/bullet.jpg')
+bulletimg= pygame.image.load(asset_bulletimg)
+
 # Cargar fuente para texto de game over
 asset_over_font = resource_path('assets/fonts/StarJediHollow-A4lL.ttf')
 over_font = pygame.font.Font(asset_over_font, 40)
@@ -134,12 +138,20 @@ def player(x, y):
 def enemy(x, y, i):
     screen.blit(enemyimg[i], (x, y))
 
-# Función para disparar la bala
+# Función para disparar la bala del jugador
 def fire_bullet(x, y):
     global bullet_state
     blast_sound.play()
     bullet_state = "fire"
     screen.blit(bulletimg2, (x + 16, y + 10))
+
+# Función para disparar la bala del enemigo
+def fire_enemy_bullet(x, y, i):
+    global enemy_bullet_state
+    enemy_bulletX[i] = x  # Asegurarse de que la bala aparezca desde la posición actual del enemigo
+    enemy_bullet_state[i] = "fire"
+    blast_sound.play()
+    screen.blit(bulletimg, (x + 16, y + 10))
 
 # Función para verificar si hubo colisión entre la bala y el enemigo
 def isCollision(enemyX, enemyY, bulletX, bulletY):
