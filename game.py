@@ -30,8 +30,8 @@ asset_title = resource_path('assets/images/titulo_principal.jpg')
 title = pygame.image.load(asset_title)
 
 # Cargar imagen de seleccion de personajes
-asset_seleccion = resource_path('assets/images/selección_de_personajes.jpg')
-seleccion = pygame.image.load(asset_seleccion)
+asset_selección_de_personajes = resource_path('assets/images/selección_de_personajes.jpg')
+seleccion = pygame.image.load(asset_selección_de_personajes)
 
 # Cargar icono de ventana
 asset_icon = resource_path('assets/images/icon.png')
@@ -44,6 +44,10 @@ pygame.mixer.music.load(asset_sound)
 # Cargar sonido de bala
 asset_blast = resource_path('assets/audios/blast.mp3')
 blast_sound = pygame.mixer.Sound(asset_blast)
+
+# Cargar sonido de bala
+asset_explosion = resource_path('assets/audios/explosion.mp3')
+explosion_sound = pygame.mixer.Sound(asset_explosion)
 
 # Cargar imagen del jugador
 asset_playerimg1 = resource_path('assets/images/Nave.png')
@@ -77,8 +81,12 @@ over_font = pygame.font.Font(asset_over_font, 40)
 asset_font = resource_path('assets/fonts/StarJediHollow-A4lL.ttf')
 font = pygame.font.Font(asset_font, 32)
 
+# Cargar imágenes de explosión
+asset_explosion = resource_path('assets/images/explosion.png')
+explosion_img = pygame.image.load(asset_explosion)
+
 # Establecer el título de la ventana
-pygame.display.set_caption("The Last One of Them")
+pygame.display.set_caption("Last One of Them")
 
 # Establecer el icono de la ventana
 pygame.display.set_icon(icon)
@@ -148,7 +156,7 @@ playerimg = playerimg1
 
 # Función para mostrar la puntuación en la pantalla
 def show_score():
-    score_value = font.render("SCORE : " + str(score), True, (255, 255, 0))
+    score_value = font.render("PTS : " + str(score), True, (255, 255, 0))
     screen.blit(score_value, (10, 10))
 
 # Función para dibujar el jugador en la pantalla 
@@ -206,10 +214,6 @@ def game_start():
     while menu:
         screen.fill((0, 0, 0))
         screen.blit(title, (0, 0))
-        # title_font = pygame.font.Font(asset_font, 50)
-        # title_text = title_font.render("The Last One of Them", True, (255, 255, 0))
-        # title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 4))
-        # screen.blit(title_text, title_rect)
 
         start_font = pygame.font.Font(asset_font, 32)
         start_text = start_font.render("ENTER para empezar", True, (0,0,0))
@@ -244,7 +248,7 @@ def character_selection():
         screen.blit(title_text, title_rect)
 
         ships = [playercharacter1, playercharacter2]
-        ship_names = ["Aldaris", "Star"]
+        ship_names = ["Weddom", "Star"]
 
         for i, ship in enumerate(ships):
             x_pos = screen_width // 2 + (i - 1) * 200
@@ -287,6 +291,14 @@ def character_selection():
     
     global playerimg
     playerimg = playerimg1 if selected == 0 else playerimg2
+
+# Variables para la explosión
+explosion_image = pygame.image.load(asset_explosion)
+explosion_visible = False
+explosion_x = 0
+explosion_y = 0
+EXPLOSION_DURATION = 500  # Duración de la explosión en milisegundos
+explosion_timer = 0
 
 # Bucle principal del juego
 game_start()
@@ -359,6 +371,12 @@ while running:
 
         # Verificar si el jugador fue golpeado
         if isPlayerHit(playerX, playerY, enemy_bulletX[i], enemy_bulletY[i]):
+            explosion_x = playerX
+            explosion_y = playerY
+            explosion_visible = True
+            explosion_timer = pygame.time.get_ticks()  # Guarda el tiempo actual
+            explosion_sound.play()  # Reproducir el sonido de explosión
+
             for j in range(no_of_enemies):
                 enemyY[j] = 2000
             game_over_text()
@@ -368,12 +386,23 @@ while running:
         # Colisión entre bala y enemigo
         collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
         if collision:
+            # Mostrar explosión
+            explosion_x = enemyX[i]
+            explosion_y = enemyY[i]
+            explosion_visible = True
+            explosion_timer = pygame.time.get_ticks()  # Guarda el tiempo actual
+            explosion_sound.play()  # Reproducir el sonido de explosión
+
+            # Resetear la bala y actualizar la puntuación
             bulletY = 480
             bullet_state = "ready"
             score += 1
+
+            # Reiniciar la posición del enemigo
             enemyX[i] = random.randint(0, 736)
             enemyY[i] = random.randint(50, 150)
 
+        # Dibujar el enemigo
         enemy(enemyX[i], enemyY[i], i)
 
     # Movimiento de la bala del jugador
@@ -387,6 +416,13 @@ while running:
 
     player(playerX, playerY)
     show_score()
+
+    # Mostrar la explosión si es necesario
+    if explosion_visible:
+        screen.blit(explosion_image, (explosion_x, explosion_y))
+        if pygame.time.get_ticks() - explosion_timer > EXPLOSION_DURATION:
+            explosion_visible = False
+
     pygame.display.update()
     clock.tick(60)
 
