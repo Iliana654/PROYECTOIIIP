@@ -149,7 +149,6 @@ def initialize_game():
     bullet_state = "ready"
 
     score = 0
-    playerimg = playerimg1
     vidas_jugador = 3
 
 # Función para mostrar la puntuación en la pantalla
@@ -172,11 +171,11 @@ def add_explosion(x, y):
 # Función para dibujar el estado de salud del jugador
 def draw_health_status():
     if vidas_jugador == 3:
-        screen.blit(salud, (10, 40))
+        screen.blit(salud, (190, 15))
     elif vidas_jugador == 2:
-        screen.blit(media_salud, (10, 40))
+        screen.blit(media_salud, (190, 15))
     elif vidas_jugador == 1:
-        screen.blit(mala_salud, (10, 40))
+        screen.blit(mala_salud, (190, 15))
 
 # Función para disparar la bala del jugador
 def fire_bullet(x, y):
