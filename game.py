@@ -8,6 +8,12 @@ import time
 # Inicializar el juego
 pygame.init()
 
+# Establecer el número de canales de sonido
+pygame.mixer.set_num_channels(8)  # Ajusta este número según tus necesidades
+
+# Asignar un canal específico para el sonido de daño
+damage_channel = pygame.mixer.Channel(2)
+
 # Establecer el tamaño de la pantalla
 screen_width = 800
 screen_height = 600
@@ -21,11 +27,13 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
+
+# Cargar imágenes y sonidos
 # Cargar imágenes y sonidos
 def load_assets():
-    global background, title, seleccion, icon, blast_sound, explosion_sound
+    global background, title, seleccion, icon, blast_sound, explosion_sound, damage_sound
     global mala_salud, media_salud, salud, playerimg1, playercharacter1, playercharacter2
-    global playerimg2, bulletimg2, bulletimg, explosion_img, over_font, font
+    global playerimg2, bulletimg2, bulletimg, explosion_img, over_font, font, botiquin_img
 
     background = pygame.image.load(resource_path('assets/images/background.png'))
     title = pygame.image.load(resource_path('assets/images/titulo_principal.jpg'))
@@ -35,7 +43,6 @@ def load_assets():
     pygame.mixer.music.load(resource_path('assets/audios/background_music2.mp3'))
     blast_sound = pygame.mixer.Sound(resource_path('assets/audios/blast.mp3'))
     explosion_sound = pygame.mixer.Sound(resource_path('assets/audios/explosion.mp3'))
-    
     mala_salud = pygame.image.load(resource_path('assets/images/mala_salud.png'))
     media_salud = pygame.image.load(resource_path('assets/images/media_salud.png'))
     salud = pygame.image.load(resource_path('assets/images/salud.jpeg'))
@@ -43,7 +50,7 @@ def load_assets():
     playerimg1 = pygame.image.load(resource_path('assets/images/Nave.png'))
     playercharacter1 = pygame.image.load(resource_path('assets/images/Aldaris.png'))
     playercharacter2 = pygame.image.load(resource_path('assets/images/Kailak.png'))
-    playerimg2 = pygame.image.load(resource_path('assets/images/nave2.png'))
+    playerimg2 = pygame.image.load(resource_path('assets/images/Nave2.png'))
     
     bulletimg2 = pygame.image.load(resource_path('assets/images/bullet2.jpg'))
     bulletimg = pygame.image.load(resource_path('assets/images/bullet.jpg'))
@@ -52,6 +59,8 @@ def load_assets():
     
     over_font = pygame.font.Font(resource_path('assets/fonts/StarJedi-DGRW.ttf'), 40)
     font = pygame.font.Font(resource_path('assets/fonts/StarJedi-DGRW.ttf'), 32)
+
+    botiquin_img = pygame.image.load(resource_path('assets/images/botiquin.png'))  # Cargar la imagen del botiquín
 
 # Cargar recursos antes de cualquier otra cosa
 load_assets()
@@ -96,11 +105,12 @@ explosions = []
 explosion_duration = 0.5  # Duración de la explosión en segundos
 
 # Función para inicializar o reiniciar las variables del juego
-def initialize_game():
+def initialize_game(selected_character):
     global playerX, playerY, playerx_change, enemyimg, enemyX, enemyY, enemyX_change, enemyY_change
     global enemy_bulletX, enemy_bulletY, enemy_bulletY_change, enemy_bullet_state, enemy_last_shot_time
     global enemy_shot_interval, no_of_enemies, bulletX, bulletY, bulletX_change, bulletY_change
-    global bullet_state, score, playerimg, vidas_jugador
+    global bullet_state, score, playerimg, vidas_jugador, botiquinX, botiquinY, botiquin_active
+    global botiquin_last_spawn_time, botiquin_spawn_interval
 
     playerX = 370
     playerY = 470
@@ -150,6 +160,11 @@ def initialize_game():
 
     score = 0
     vidas_jugador = 3
+    botiquinX = random.randint(0, screen_width - 64)
+    botiquinY = -64
+    botiquin_active = False
+    botiquin_last_spawn_time = time.time()
+    botiquin_spawn_interval = random.randint(10, 20)  # Intervalo aleatorio entre 10 y 20 segundos
 
 # Función para mostrar la puntuación en la pantalla
 def show_score():
@@ -171,11 +186,12 @@ def add_explosion(x, y):
 # Función para dibujar el estado de salud del jugador
 def draw_health_status():
     if vidas_jugador == 3:
-        screen.blit(salud, (190, 15))
+        screen.blit(salud, (190,15))
     elif vidas_jugador == 2:
-        screen.blit(media_salud, (190, 15))
+        screen.blit(media_salud, (190,15))
     elif vidas_jugador == 1:
-        screen.blit(mala_salud, (190, 15))
+        screen.blit(mala_salud,(190,15))
+
 
 # Función para disparar la bala del jugador
 def fire_bullet(x, y):
@@ -243,10 +259,10 @@ def game_start():
 
         pygame.display.update()
         clock.tick(15)
-
+    
 # Función para la selección de personajes
 def character_selection():
-    global playerimg
+    global playerimg, character_name
 
     selected = 0
     select = True
@@ -289,21 +305,22 @@ def character_selection():
                 if event.key == pygame.K_RIGHT:
                     selected = 1
                 if event.key == pygame.K_RETURN:
-                    global playerimg, character_name
                     if selected == 0:
                         playerimg = playerimg1
-                        character_name = "Aldaris"  # Nombre del primer personaje
+                        character_name = "Weddom"  # Nombre del primer personaje
                     else:
                         playerimg = playerimg2
                         character_name = "Star"  # Nombre del segundo personaje
                     select = False
-                    initialize_game()  # Reinicializar el juego antes de empezar
+                    initialize_game(character_name)  # Pasa el personaje seleccionado
                     game_loop()  # Iniciar el bucle principal del juego
 
         pygame.display.update()
         clock.tick(15)
 
-# Función para mostrar la pantalla de Game Over y permitir volver al menú
+
+
+# Pantalla de Game Over
 def game_over_screen():
     while True:
         screen.fill((0, 0, 0))
@@ -324,9 +341,18 @@ def game_over_screen():
         pygame.display.update()
         clock.tick(15)
 
-# Bucle principal del juego
+# Función para dibujar el botiquín en la pantalla
+def dibujar_botiquin(x, y):
+    screen.blit(botiquin_img, (x, y))
+
+# Función para verificar si el jugador ha recogido el botiquín
+def isBotiquinCollected(playerX, playerY, botiquinX, botiquinY):
+    distance = math.sqrt((math.pow(playerX - botiquinX, 2)) + (math.pow(playerY - botiquinY, 2)))
+    return distance < 27
+
+# Añadir el manejo del botiquín en el bucle principal del juego
 def game_loop():
-    global playerX, playerY, playerx_change, bulletX, bulletY, bullet_state, score, vidas_jugador
+    global playerX, playerY, playerx_change, bulletX, bulletY, bullet_state, score, vidas_jugador, botiquinX, botiquinY, botiquin_active, botiquin_last_spawn_time
 
     running = True
     while running:
@@ -379,15 +405,20 @@ def game_loop():
                 game_over_screen()
                 break
 
+            # Inicializar el canal de sonido para explosiones
+            explosion_channel = pygame.mixer.Channel(1)
+
+            # En el bucle principal del juego, al detectar una colisión con un enemigo
             collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
             if collision:
-                explosion_sound.play()
+                explosion_channel.play(explosion_sound)  # Usar el canal específico para reproducir el sonido
                 add_explosion(enemyX[i], enemyY[i])  # Añadir explosión a la lista
                 bulletY = 480
                 bullet_state = "ready"
                 score += 1
                 enemyX[i] = random.randint(0, 736)
                 enemyY[i] = random.randint(50, 150)
+
 
             if enemy_bullet_state[i] == "fire":
                 fire_enemy_bullet(enemy_bulletX[i], enemy_bulletY[i], i)
@@ -405,10 +436,10 @@ def game_loop():
                             enemyY[j] = 2000
                         game_over_screen()
                         return
-                    enemy_bullet_state[i] = "ready"  # Resetea el estado de la bala enemiga
+                    enemy_bullet_state[i] = "ready"
 
             enemy(enemyX[i], enemyY[i], i)
-
+            
         if bulletY <= 0:
             bulletY = 480
             bullet_state = "ready"
@@ -429,6 +460,25 @@ def game_loop():
                 screen.blit(explosion_img, (x, y))
             else:
                 explosions.remove(explosion)
+
+        # Manejar el botiquín
+        if not botiquin_active and time.time() - botiquin_last_spawn_time > botiquin_spawn_interval:
+            botiquinX = random.randint(0, screen_width - 64)
+            botiquinY = -64
+            botiquin_active = True
+            botiquin_last_spawn_time = time.time()
+
+        if botiquin_active:
+            dibujar_botiquin(botiquinX, botiquinY)
+            botiquinY += 5
+
+            if botiquinY > screen_height:
+                botiquin_active = False
+
+            if isBotiquinCollected(playerX, playerY, botiquinX, botiquinY):
+                botiquin_active = False
+                if vidas_jugador < 3:
+                    vidas_jugador += 1
 
         pygame.display.update()
         clock.tick(60)
