@@ -144,7 +144,7 @@ def show_characters_info():
 
     character_options = ["Weddom", "Star"]
     font = pygame.font.Font(resource_path('assets/fonts/StarJedi-DGRW.ttf'), 15)
-    text_color = (255, 255, 0)
+    text_color = (255, 165, 0)
 
     while True:
         screen.fill((0, 0, 0))
@@ -185,7 +185,7 @@ def show_characters_info():
 
 def show_creditos():
     confirm_sound = pygame.mixer.Sound(resource_path('assets/audios/confirm_sound.mp3'))
-    font = pygame.font.Font(resource_path('assets/fonts/StarJedi-DGRW.ttf'), 32)  # Asegúrate de tener esta fuente
+    font = pygame.font.Font(resource_path('assets/fonts/StarJedi-DGRW.ttf'), 32) 
     creditos = pygame.image.load(resource_path('assets/images/creditos.jpg'))  # Fondo de créditos
 
     
@@ -350,7 +350,7 @@ def game_start():
     confirm_sound = pygame.mixer.Sound(resource_path('assets/audios/confirm_sound.mp3'))
     
     selected_option = 0
-    options = ["Jugar", "Instrucciones", "Personajes", "Créditos", "Salir"]
+    options = ["Jugar", "instrucciones", "Personajes", "Créditos", "Salir"]
     font = pygame.font.Font(resource_path('assets/fonts/StarJedi-DGRW.ttf'), 32)
     
     while menu:
@@ -412,6 +412,7 @@ def show_instructions():
         "3. Evita los disparos enemigos y destruye las naves enemigas.",
         "4. Recoge los botiquines para recuperar salud.",
         "5. Tu objetivo es sobrevivir el mayor tiempo posible.",
+        "6. Si quieres pausar el juego, haz clicl en la tecla P para pausar."
         "",
         "Presiona ENTER para volver al menú."
     ]
@@ -421,7 +422,7 @@ def show_instructions():
         screen.blit(instrucciones, (0, 0))
         y = 50
         for line in instructions_text:
-            text_surface = font.render(line, True, (255, 255, 255))
+            text_surface = font.render(line, True, (0, 255, 0))
             screen.blit(text_surface, (50, y))
             y += 30
 
@@ -436,7 +437,46 @@ def show_instructions():
 
         pygame.display.update()
         clock.tick(15)
+def death_cinematic():
+    global playerY
+    pygame.mixer.music.stop()
+    # Reproducir el sonido de explosión inicial
+    explosion_sound.play()
+    
+    # Ciclo de animación de la caída de la nave
+    for i in range(60):  # Ajusta el número de iteraciones para la duración de la cinemática
+        screen.fill((0, 0, 0))  # Limpiar la pantalla con un fondo negro
+        playerY += 3  # Incrementa la posición Y para simular caída lenta
+        
+        # Mostrar la nave dañada
+        screen.blit(playerimg, (playerX, playerY))
+        
+        # Mostrar explosiones intermitentes
+        if i % 5 == 0:  # Mostrar explosión cada 5 cuadros
+            screen.blit(explosion_img, (playerX, playerY))
+            explosion_sound.play()
+        
+        # Añadir parpadeo de luces de emergencia
+        if i % 10 == 0:
+            screen.fill((255, 0, 0))  # Fondo rojo intermitente
 
+        # Añadir ruido estático (interferencias)
+        if i % 15 == 0:
+            static_noise = pygame.Surface(screen.get_size())
+            static_noise.set_alpha(128)  # Ajustar la transparencia de la interferencia
+            static_noise.fill((255, 255, 255))
+            screen.blit(static_noise, (0, 0))
+        
+        # Actualizar la pantalla
+        pygame.display.update()
+        time.sleep(0.1)  # Pausa para simular la animación
+    
+    # Pausa más larga para el impacto final
+    explosion_sound.play()
+    time.sleep(2)
+    
+    # Llamar a la función de Game Over
+    game_over_screen()
 
 # Función para la selección de personajes
 def character_selection():
@@ -562,7 +602,7 @@ def star_wars_intro(selected_character):
         "",
         "",
         "",
-        "                               Buena Suerte"
+        "                      que la fuerza te acompañe."
     ]
     character_line = ("         Weddom Aldaris" if selected_character == 0 else "            Star Kailak") + ". Su misión comienza ahora"
     intro_text.append("")
@@ -593,6 +633,27 @@ def star_wars_intro(selected_character):
 
     # Detener la música de fondo al finalizar la introducción
     pygame.mixer.music.stop()
+
+def pause_game():
+    paused = True
+    pygame.mixer.music.pause()
+    font = pygame.font.SysFont(None, 55)
+    pause_text = font.render('Juego en Pausa', True, (255, 255, 255))
+
+    while paused:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:  # Tecla 'P' para continuar
+                    paused = False
+                    pygame.mixer.music.unpause()
+                game_start()
+
+        screen.blit(pause_text, (250, 300))
+        pygame.display.update()
+        clock.tick(5)
 
 def show_cinematic(selected):
     # Carga el sonido de radio
@@ -725,6 +786,9 @@ def game_loop():
                     playerx_change = -5
                 if event.key == pygame.K_RIGHT:
                     playerx_change = 5
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:  # Tecla 'P' para pausar
+                        pause_game()
                 if event.key == pygame.K_SPACE:
                     if bullet_state == "ready":
                         bulletX = playerX
@@ -792,6 +856,7 @@ def game_loop():
                     if vidas_jugador <= 0:
                         for j in range(no_of_enemies):
                             enemyY[j] = 2000
+                        death_cinematic()
                         game_over_screen()
                         return
                     enemy_bullet_state[i] = "ready"
