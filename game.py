@@ -14,11 +14,14 @@ pygame.mixer.set_num_channels(8)  # Ajusta este número según tus necesidades
 # Asignar un canal específico para el sonido de daño
 damage_channel = pygame.mixer.Channel(2)
 
-# Establecer el tamaño de la pantalla
+# Establecer el tamaño de la pantalla que quieres en pantalla completa
 screen_width = 800
 screen_height = 600
-screen = pygame.display.set_mode((screen_width, screen_height))
 
+# Configurar pantalla completa con la resolución deseada
+screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+
+clock = pygame.time.Clock()
 # Función para obtener la ruta de los recursos
 def resource_path(relative_path):
     try:
@@ -639,18 +642,22 @@ def pause_game():
     pygame.mixer.music.pause()
     font = pygame.font.SysFont(None, 55)
     pause_text = font.render('Juego en Pausa', True, (255, 255, 255))
+    select_sound = pygame.mixer.Sound(resource_path('assets/audios/select_sound.mp3'))
 
     while paused:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:  # Tecla 'P' para continuar
                     paused = False
                     pygame.mixer.music.unpause()
-                game_start()
-
+                elif event.key == pygame.K_t:
+                    print("Tecla T presionada")  # Depuración
+                    select_sound.play()
+                    paused = False
+                    game_start()  # Regresar al menú principal
         screen.blit(pause_text, (250, 300))
         pygame.display.update()
         clock.tick(5)
