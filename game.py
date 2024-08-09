@@ -45,6 +45,7 @@ def load_assets():
     instrucciones = pygame.image.load(resource_path('assets/images/propuesta_cambiada.jpeg'))
     biografias= pygame.image.load(resource_path('assets/images/biografias.jpg'))
     creditos = pygame.image.load(resource_path('assets/images/creditos.jpg'))
+    record= pygame.image.load(resource_path('assets/images/record.jpg'))
     
     pygame.mixer.music.load(resource_path('assets/audios/background_music2.mp3'))
     blast_sound = pygame.mixer.Sound(resource_path('assets/audios/blast.mp3'))
@@ -52,7 +53,7 @@ def load_assets():
 
     mala_salud = pygame.image.load(resource_path('assets/images/mala_salud.png'))
     media_salud = pygame.image.load(resource_path('assets/images/media_salud.png'))
-    salud = pygame.image.load(resource_path('assets/images/salud.jpeg'))
+    salud = pygame.image.load(resource_path('assets/images/salud.png'))
     
     playerimg1 = pygame.image.load(resource_path('assets/images/Nave.png'))
     playercharacter1 = pygame.image.load(resource_path('assets/images/Aldaris.png'))
@@ -415,19 +416,22 @@ def game_start():
 
 def show_records():
     global high_score
-    screen.fill((0, 0, 0))
+    record= pygame.image.load(resource_path('assets/images/record.jpg'))
+    screen.fill((0, 0, 0))  # Fondo negro
+    screen.blit(record, (0, 0))  # Fondo del espacio
+
     font = pygame.font.Font(resource_path('assets/fonts/StarJedi-DGRW.ttf'), 32)
-    title_text = font.render("Records", True, (255, 255, 255))
+    title_text = font.render("Records", True, (255, 255,0))
     title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 4))
     screen.blit(title_text, title_rect)
 
     # Mostrando el mayor récord
-    record_text = font.render(f"Mayor Récord: {high_score}", True, (255, 255, 255))
+    record_text = font.render(f"Mayor Récord: {high_score}", True, (255, 255,0))
     record_rect = record_text.get_rect(center=(screen_width // 2, screen_height // 2))
     screen.blit(record_text, record_rect)
 
     # Instrucción para volver al menú
-    back_text = font.render("Presiona ESC para volver", True, (255, 255, 255))
+    back_text = font.render("Presiona ESC para volver", True, (255, 255,0))
     back_rect = back_text.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
     screen.blit(back_text, back_rect)
 
@@ -455,7 +459,7 @@ def show_instructions():
         "3. Evita los disparos enemigos y destruye las naves enemigas.",
         "4. Recoge los botiquines para recuperar salud.",
         "5. Tu objetivo es sobrevivir el mayor tiempo posible.",
-        "6. Si quieres pausar el juego, haz clic en la tecla P para pausar."
+        "6. Si quieres pausar el juego, haz clic en la tecla P para pausar.",
         "7. Si quieres salir del juego, haz clic en las teclas PQ para salir.",
         "Presiona ENTER para volver al menú."
     ]
